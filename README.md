@@ -1,4 +1,9 @@
+<h2>
+  Note: This repository is an old version of [kadirnar-repository](https://github.com/kadirnar/Yolov7-SAHI)
+<h2>
+
 <div align="center">
+
 <h1>
   SAHI: Slicing Aided Hyper Inference
 </h1>
