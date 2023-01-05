@@ -1,7 +1,4 @@
-<h2>
-  Note: This repository is an old version of [kadirnar-repository](https://github.com/kadirnar/Yolov7-SAHI)
-<h2>
-
+Note: This repository is an old version of [kadirnar-repository](https://github.com/kadirnar/Yolov7-SAHI)
 <div align="center">
 
 <h1>
