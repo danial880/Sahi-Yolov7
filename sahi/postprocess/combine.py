@@ -541,7 +541,7 @@ class GreedyNMMPostprocess(PostprocessPredictions):
         object_predictions: List[ObjectPrediction],
     ):
         object_prediction_list = ObjectPredictionList(object_predictions)
-        print("From NMM post-processing\nobject_prediction_list = ",object_prediction_list)
+        #print("From NMM post-processing\nobject_prediction_list = ",object_prediction_list)
         object_predictions_as_torch = object_prediction_list.totensor()
         if self.class_agnostic:
             keep_to_merge_list = greedy_nmm(
