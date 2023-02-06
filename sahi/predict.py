@@ -242,13 +242,13 @@ def get_sliced_prediction(
         # prepare batch (currently supports only 1 batch)
         image_list = []
         shift_amount_list = []
-        scaling_factor_x = slice_width / resize_width
-        scaling_factor_y = slice_height / resize_height
         for image_ind in range(num_batch):
             image_list.append(slice_image_result.images[group_ind * num_batch + image_ind])
             shift_amount_list.append(slice_image_result.starting_pixels[group_ind * num_batch + image_ind])
         # perform batch prediction
         if resize:
+            scaling_factor_x = slice_width / resize_width
+            scaling_factor_y = slice_height / resize_height
             image_list[0] = cv2.resize(image_list[0], (resize_width, resize_height))
         prediction_result = get_prediction(
             image=image_list[0],
