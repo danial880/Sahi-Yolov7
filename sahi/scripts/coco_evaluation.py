@@ -211,7 +211,7 @@ def evaluate_core(
             for idx, catId in enumerate(cat_ids):
                 nm = cocoGt.loadCats(catId)[0]
                 cat_name_len = len(nm["name"])
-                max_cat_name_len = cat_name_len if cat_name_len > max_cat_name_len else max_cat_name_len
+                max_cat_name_len  false positives on given coco jsons= cat_name_len if cat_name_len > max_cat_name_len else max_cat_name_len
 
             results_per_category = []
             for idx, catId in enumerate(cat_ids):

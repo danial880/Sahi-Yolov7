@@ -116,6 +116,9 @@ class DetectionModel:
         self,
         shift_amount_list: Optional[List[List[int]]] = [[0, 0]],
         full_shape_list: Optional[List[List[int]]] = None,
+        resize: bool = False,
+        scaling_factor_x: float = None,
+        scaling_factor_y: float = None,
     ):
         """
         This function should be implemented in a way that self._original_predictions should
@@ -143,12 +146,15 @@ class DetectionModel:
             for object_prediction in object_prediction_list:
                 old_category_id_str = str(object_prediction.category.id)
                 new_category_id_int = self.category_remapping[old_category_id_str]
-                object_prediction.category.id = new_category_igd_int
+                object_prediction.category.id = new_category_id_int
 
     def convert_original_predictions(
         self,
         shift_amount: Optional[List[int]] = [0, 0],
         full_shape: Optional[List[int]] = None,
+        resize: bool = False,
+        scaling_factor_x: float = None,
+        scaling_factor_y: float = None,
     ):
         """
         Converts original predictions of the detection model to a list of
@@ -162,6 +168,9 @@ class DetectionModel:
         self._create_object_prediction_list_from_original_predictions(
             shift_amount_list=shift_amount,
             full_shape_list=full_shape,
+            resize=resize,
+            scaling_factor_x=scaling_factor_x,
+            scaling_factor_y=scaling_factor_y,
         )
         if self.category_remapping:
             self._apply_category_remapping()
@@ -1126,6 +1135,9 @@ class Yolov7DetectionModel(DetectionModel):
         self,
         shift_amount_list: Optional[List[List[int]]] = [[0, 0]],
         full_shape_list: Optional[List[List[int]]] = None,
+        resize: bool = False,
+        scaling_factor_x: float = None,
+        scaling_factor_y: float = None,
     ):
         # compatilibty for sahi v0.8.20
         if isinstance(shift_amount_list[0], int):
@@ -1138,14 +1150,23 @@ class Yolov7DetectionModel(DetectionModel):
 
         object_prediction_list_per_image = []
         object_prediction_list = []
+
         for _, image_predictions_in_xyxy_format in enumerate(self._original_predictions.xyxy):
             for pred in image_predictions_in_xyxy_format.cpu().detach().numpy():
-                x1, y1, x2, y2 = (
-                    int(pred[0]),
-                    int(pred[1]),
-                    int(pred[2]),
-                    int(pred[3]),
-                )
+                if resize:
+                    x1, y1, x2, y2 = (
+                        int(pred[0] * scaling_factor_x),
+                        int(pred[1] * scaling_factor_y),
+                        int(pred[2] * scaling_factor_x),
+                        int(pred[3] * scaling_factor_y),
+                    )
+                else:
+                    x1, y1, x2, y2 = (
+                        int(pred[0]),
+                        int(pred[1]),
+                        int(pred[2]),
+                        int(pred[3]),
+                    )
                 bbox = [x1, y1, x2, y2]
                 score = pred[4]
                 category_name = self.model.names[int(pred[5])]

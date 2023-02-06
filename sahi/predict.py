@@ -59,6 +59,9 @@ def get_prediction(
     full_shape=None,
     postprocess: Optional[PostprocessPredictions] = None,
     verbose: int = 0,
+    resize: bool = False,
+    scaling_factor_x: float = None,
+    scaling_factor_y: float = None,
 ) -> PredictionResult:
     """
     Function for performing prediction for given image using given detection_model.
@@ -98,6 +101,9 @@ def get_prediction(
     detection_model.convert_original_predictions(
         shift_amount=shift_amount,
         full_shape=full_shape,
+        resize=resize,
+        scaling_factor_x=scaling_factor_x,
+        scaling_factor_y=scaling_factor_y,
     )
     object_prediction_list: List[ObjectPrediction] = detection_model.object_prediction_list
 
@@ -135,6 +141,9 @@ def get_sliced_prediction(
     verbose: int = 1,
     merge_buffer_length: int = None,
     auto_slice_resolution: bool = True,
+    resize: bool = False,
+    resize_height: int = None,
+    resize_width: int = None,
 ) -> PredictionResult:
     """
     Function for slice image + get predicion for each slice + combine predictions in full image.
@@ -233,10 +242,14 @@ def get_sliced_prediction(
         # prepare batch (currently supports only 1 batch)
         image_list = []
         shift_amount_list = []
+        scaling_factor_x = slice_width / resize_width
+        scaling_factor_y = slice_height / resize_height
         for image_ind in range(num_batch):
             image_list.append(slice_image_result.images[group_ind * num_batch + image_ind])
             shift_amount_list.append(slice_image_result.starting_pixels[group_ind * num_batch + image_ind])
         # perform batch prediction
+        if resize:
+            image_list[0] = cv2.resize(image_list[0], (resize_width, resize_height))
         prediction_result = get_prediction(
             image=image_list[0],
             detection_model=detection_model,
@@ -245,17 +258,22 @@ def get_sliced_prediction(
                 slice_image_result.original_image_height,
                 slice_image_result.original_image_width,
             ],
-        )
+            resize=resize,
+            scaling_factor_x=scaling_factor_x,
+            scaling_factor_y=scaling_factor_y,
+        )       
         # convert sliced predictions to full predictions
         for object_prediction in prediction_result.object_prediction_list:
+            #print('object_prediction = ', (object_prediction.bbox.to_voc_bbox()))
             if object_prediction:  # if not empty
+                #print('object_prediction = ', (object_prediction.bbox.to_voc_bbox()))
                 object_prediction_list.append(object_prediction.get_shifted_object_prediction())
-
+        #print(object_prediction_list)
         # merge matching predictions during sliced prediction
         if merge_buffer_length is not None and len(object_prediction_list) > merge_buffer_length:
             object_prediction_list = postprocess(object_prediction_list)
 
-    # perform standard prediction
+    # perform standard prediction   
     if num_slices > 1 and perform_standard_pred:
         prediction_result = get_prediction(
             image=image,
@@ -268,10 +286,7 @@ def get_sliced_prediction(
 
     # merge matching predictions
     if len(object_prediction_list) > 1:
-        #print('\n\nobject_prediction_list',object_prediction_list)
-        #print('\n\n')
         object_prediction_list = postprocess(object_prediction_list)
-
     time_end = time.time() - time_start
     durations_in_seconds["prediction"] = time_end
 
