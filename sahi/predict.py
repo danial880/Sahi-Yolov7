@@ -238,6 +238,8 @@ def get_sliced_prediction(
         tqdm.write(f"Performing prediction on {num_slices} number of slices.")
     object_prediction_list = []
     # perform sliced prediction
+    scaling_factor_x = 0
+    scaling_factor_y = 0
     for group_ind in range(num_group):
         # prepare batch (currently supports only 1 batch)
         image_list = []
@@ -245,7 +247,7 @@ def get_sliced_prediction(
         for image_ind in range(num_batch):
             image_list.append(slice_image_result.images[group_ind * num_batch + image_ind])
             shift_amount_list.append(slice_image_result.starting_pixels[group_ind * num_batch + image_ind])
-        # perform batch prediction
+        # perform batch prediction       
         if resize:
             scaling_factor_x = slice_width / resize_width
             scaling_factor_y = slice_height / resize_height
