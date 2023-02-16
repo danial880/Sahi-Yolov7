@@ -240,7 +240,7 @@ class MmdetDetectionModel(DetectionModel):
             raise ValueError("Model is not loaded, load it by calling .load_model()")
         # Supports only batch of 1
         from mmdet.apis import inference_detector
-
+        #print('mmdet image size = ', image.shape)
         # perform inference
         if isinstance(image, np.ndarray):
             # https://github.com/obss/sahi/issues/265
@@ -283,6 +283,9 @@ class MmdetDetectionModel(DetectionModel):
         self,
         shift_amount_list: Optional[List[List[int]]] = [[0, 0]],
         full_shape_list: Optional[List[List[int]]] = None,
+        resize: bool = False,
+        scaling_factor_x: float = None,
+        scaling_factor_y: float = None,
     ):
         """
         self._original_predictions is converted to a list of prediction.ObjectPrediction and set to
@@ -360,7 +363,14 @@ class MmdetDetectionModel(DetectionModel):
                     if not (bbox[0] < bbox[2]) or not (bbox[1] < bbox[3]):
                         logger.warning(f"ignoring invalid prediction with bbox: {bbox}")
                         continue
-
+# Resizing will take place here
+                    if resize:
+                        bbox[0], bbox[1], bbox[2], bbox[3] = (
+                            int(bbox[0] * scaling_factor_x),
+                            int(bbox[1] * scaling_factor_y),
+                            int(bbox[2] * scaling_factor_x),
+                            int(bbox[3] * scaling_factor_y),
+                        )
                     object_prediction = ObjectPrediction(
                         bbox=bbox,
                         category_id=category_id,
@@ -600,7 +610,7 @@ class Detectron2DetectionModel(DetectionModel):
         if isinstance(image, np.ndarray) and self.model.input_format == "BGR":
             # convert RGB image to BGR format
             image = image[:, :, ::-1]
-
+        #print('detectron2 image shape = ',image.shape)
         prediction_result = self.model(image)
 
         self._original_predictions = prediction_result
@@ -617,6 +627,9 @@ class Detectron2DetectionModel(DetectionModel):
         self,
         shift_amount_list: Optional[List[List[int]]] = [[0, 0]],
         full_shape_list: Optional[List[List[int]]] = None,
+        resize: bool = False,
+        scaling_factor_x: float = None,
+        scaling_factor_y: float = None,
     ):
         """
         self._original_predictions is converted to a list of prediction.ObjectPrediction and set to
@@ -675,7 +688,14 @@ class Detectron2DetectionModel(DetectionModel):
                     continue
                 else:
                     bbox = None
-
+############################################33
+            if resize:
+                bbox[0], bbox[1], bbox[2], bbox[3] = (
+                    int(bbox[0] * scaling_factor_x),
+                    int(bbox[1] * scaling_factor_y),
+                    int(bbox[2] * scaling_factor_x),
+                    int(bbox[3] * scaling_factor_y),
+                )
             object_prediction = ObjectPrediction(
                 bbox=bbox,
                 bool_mask=mask,
